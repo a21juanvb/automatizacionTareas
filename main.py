@@ -1,40 +1,37 @@
 import requests
 
 import backup
-#from backup import backuptoZip
 
 
 
-#función para leer el archivo flow.txt
-def procesar_data(d):
+
+#función de lectura do archivo de control de operacións (flow.txt)
+def procesar_datos(flow):
     resultado = None
-    if d is not None:
-        datos = d.split('|')
+    if flow is not None:
+        datos = flow.split('|')
         operador = datos[0]
         comando1 = datos[1]
         comando2 = datos[2]
+        pin = datos[3]
 
-        resultado = operador, comando1, comando2
+        resultado = operador, comando1, comando2, pin
     return resultado
 
-#Recuperamos los datos
+# Parte que procesa a recuperación dos datos
 if __name__ == '__main__':
-    #tomamos el archivo de un repositorio
-    res = requests.get('https://gitlab.iessanclemente.net/abautis/seminarioautomatizacion/-/raw/main/flow.txt?inline=false')
-    #llamamos a la funcion que lee el archivo y lo devolvemos en datos
-    datos = procesar_data(res.text)
-    #rompemos otra vez para ver si ejecutamos ono
+    #o arquivo de control está nun repositorio de github
+    secuencia = requests.get('https://github.com/a21juanvb/automatizacionTareas/blob/master/flow.txt')
+    datos = procesar_datos(secuencia.text)
+    # recortamos os datos para obter as distintas cadeas de instrucións e clave
+    clave = datos[3].split(':')[1]
     isBackup = datos[1].split(':')[1]
-    isSent = datos[2].split(':')[1]
-    #imprimimos las acciones detectadas
-    print("backup: ", isBackup)
-    print("sent: ", isSent)
 
-    if int(isBackup) == 1:
-        backup.backuptoZip('data')
+    if clave != '12345':
+        print('Non se pode procesar a orde, dado que a clave non concorda coa anotación de control')
     else:
-        print('El proceso de copia de seguridad esta deshabilitado')
-
-
-
-
+        print("backup: ", isBackup)
+        if int(isBackup) == 1:
+            backup.backuptoZip('data')
+        else:
+            print('Active o servizo de backup, neste momento está deshabilitado')
